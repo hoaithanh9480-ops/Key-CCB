@@ -79,7 +79,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Hàm tạo key ngẫu nhiên
 function generateKey(len=8){
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let res = "";
@@ -87,7 +86,6 @@ function generateKey(len=8){
   return res;
 }
 
-// Tạo và lưu key
 async function createKeys(){
   const count = parseInt(document.getElementById('keyCount').value)||1;
   const length = parseInt(document.getElementById('keyLength').value)||8;
@@ -98,12 +96,10 @@ async function createKeys(){
     const data = { generatedAt: timestamp, used:false, usedAt:null };
     await database.ref('licenseKeys/'+key).set(data);
   }
-  // Loại bỏ gọi lại loadKeys dư thừa ở đây vì .on('value') đã tự động chạy
 }
 
 document.getElementById('generateBtn').addEventListener('click', createKeys);
 
-// Hàm sao chép mã vào clipboard
 function copyKeyToClipboard(key) {
   navigator.clipboard.writeText(key).then(() => {
     alert("Đã sao chép: " + key);
@@ -112,9 +108,9 @@ function copyKeyToClipboard(key) {
   });
 }
 
-// Hàm huỷ bản quyền chuẩn hóa
+// HÀM HUỶ BẢN QUYỀN MỚI: Xử lý cả Key lẫn User
 async function revokeLicense(key, btnElement) {
-  if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?\n\nMã này sẽ trở về trạng thái chưa sử dụng.")) {
+  if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?\n\nUser đang sử dụng mã này sẽ bị khóa bản quyền ngay lập tức!")) {
     
     if(btnElement) {
       btnElement.disabled = true;
@@ -122,24 +118,40 @@ async function revokeLicense(key, btnElement) {
     }
     
     try {
-      // Chỉ cập nhật trạng thái tại nhánh licenseKeys
-      await database.ref('licenseKeys/'+key).update({
+      // 1. Lấy thông tin hiện tại của key xem ai đang giữ nó
+      const snapshot = await database.ref('licenseKeys/' + key).get();
+      if (snapshot.exists()) {
+        const keyData = snapshot.val();
+        const userId = keyData.usedBy; // Lấy UID của user từ trường usedBy
+
+        // 2. Nếu tìm thấy UID của user, tiến hành đặt licensed thành false ở nhánh users
+        if (userId) {
+          await database.ref('users/' + userId + '/license').update({
+            licensed: false,
+            key: null,
+            activatedAt: null
+          });
+          console.log("Đã hủy trạng thái bản quyền của User: " + userId);
+        }
+      }
+
+      // 3. Tiến hành reset trạng thái Key về chưa sử dụng
+      await database.ref('licenseKeys/' + key).update({
         used: false,
         usedAt: null,
         usedBy: null,
         usedByEmail: null
       });
       
-      alert("✅ Đã huỷ bản quyền cho mã: " + key + "\n\nKey này đã sẵn sàng để sử dụng lại.");
+      alert("✅ Đã hủy bản quyền thành công!\n- Mã " + key + " đã sẵn sàng tái sử dụng.\n- Tài khoản người dùng liên quan đã bị khóa.");
       
     } catch (error) {
       console.error("Lỗi khi huỷ bản quyền:", error);
-      alert("❌ Có lỗi xảy ra: " + error.message);
+      alert("❌ Có lỗi xảy ra khi xử lý dữ liệu: " + error.message);
     }
   }
 }
 
-// Lắng nghe dữ liệu thời gian thực và hiển thị bảng
 function initLicenseManager(){
   database.ref('licenseKeys').on('value', snap => {
     if(!snap.exists()){ 
@@ -148,7 +160,7 @@ function initLicenseManager(){
     }
     
     const keys = snap.val();
-    let html = `<table><thead><tr><th>Mã</th><th>Trạng thái</th><th>Ngày tạo</th><th>Ngày cấp</th><th>Người dùng</th><th>Email</th><th>Thao tác</th></tr></thead><tbody>`;
+    let html = `<table><thead><tr><th>Mã</th><th>Trạng thái</th><th>Ngày tạo</th><th>Ngày cấp</th><th>UID Người dùng</th><th>Email</th><th>Thao tác</th></tr></thead><tbody>`;
     
     Object.entries(keys).forEach(([k,v])=>{
       html += `<tr class="${v.used?'key-used':'key-unused'}">
@@ -156,7 +168,7 @@ function initLicenseManager(){
         <td>${v.used?'✅ Đã cấp':'🔄 Chưa cấp'}</td>
         <td>${v.generatedAt?new Date(v.generatedAt).toLocaleDateString('vi-VN'):'---'}</td>
         <td>${v.usedAt?new Date(v.usedAt).toLocaleDateString('vi-VN'):'---'}</td>
-        <td>${v.usedBy||'---'}</td>
+        <td><small><code>${v.usedBy||'---'}</code></small></td>
         <td>${v.usedByEmail||'---'}</td>
         <td>
           ${v.used ? `<button class="revoke-btn" data-key="${k}">Huỷ bản quyền</button>` : '---'}
@@ -166,7 +178,6 @@ function initLicenseManager(){
     html += `</tbody></table>`;
     document.getElementById('keysTable').innerHTML = html;
 
-    // Gán sự kiện Sao chép
     document.querySelectorAll('.copy-btn').forEach(button => {
       button.onclick = (e) => {
         const key = e.currentTarget.getAttribute('data-key');
@@ -174,7 +185,6 @@ function initLicenseManager(){
       };
     });
     
-    // Gán sự kiện Hủy bản quyền (Sử dụng e.currentTarget để định vị chính xác phần tử click)
     document.querySelectorAll('.revoke-btn').forEach(button => {
       button.onclick = (e) => {
         const key = e.currentTarget.getAttribute('data-key');
@@ -184,7 +194,6 @@ function initLicenseManager(){
   });
 }
 
-// Chạy khởi tạo ứng dụng
 initLicenseManager();
 </script>
 </body>
