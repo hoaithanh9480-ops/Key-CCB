@@ -114,19 +114,16 @@ function copyKeyToClipboard(key) {
 
 // Hàm huỷ bản quyền
 // Hàm huỷ bản quyền - CHỈ RESET KEY, KHÔNG ĐỘNG VÀO USER
-async function revokeLicense(key) {
+async function revokeLicense(key, btn) {
   if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?\n\nMã này sẽ trở về trạng thái chưa sử dụng.")) {
-    // Hiển thị loading
-    const btn = event?.target;
-    const originalText = btn?.textContent || 'Huỷ bản quyền';
+    const originalText = btn ? btn.textContent : 'Huỷ bản quyền';
     if(btn) {
       btn.disabled = true;
       btn.textContent = '⏳ Đang xử lý...';
     }
     
     try {
-      // CHỈ CẬP NHẬT KEY, KHÔNG ĐỘNG VÀO USER
-      // Điều này tránh lỗi permission_denied
+      // Cập nhật trạng thái key về chưa sử dụng
       await database.ref('licenseKeys/'+key).update({
         used: false,
         usedAt: null,
@@ -135,7 +132,7 @@ async function revokeLicense(key) {
       });
       
       alert("✅ Đã huỷ bản quyền cho mã: " + key + "\n\nKey này đã sẵn sàng để sử dụng lại.");
-      loadKeys(); // Tải lại danh sách
+      // Không cần gọi loadKeys() vì .on('value') sẽ tự động cập nhật thời gian thực
       
     } catch (error) {
       console.error("Lỗi khi huỷ bản quyền:", error);
@@ -156,7 +153,7 @@ function loadKeys(){
     let html = `<table><thead><tr><th>Mã</th><th>Trạng thái</th><th>Ngày tạo</th><th>Ngày cấp</th><th>Người dùng</th><th>Email</th><th>Thao tác</th></tr></thead><tbody>`;
     Object.entries(keys).forEach(([k,v])=>{
       html += `<tr class="${v.used?'key-used':'key-unused'}">
-        <td><code>${k}</code> <button class="copy-btn" data-key="${k}">Sao chép</button></td>
+        <td><code>${k}</code> <button class="copy-btn" data-key="${k}">Nhấp</button></td>
         <td>${v.used?'✅ Đã cấp':'🔄 Chưa cấp'}</td>
         <td>${v.generatedAt?new Date(v.generatedAt).toLocaleDateString('vi-VN'):'---'}</td>
         <td>${v.usedAt?new Date(v.usedAt).toLocaleDateString('vi-VN'):'---'}</td>
@@ -178,11 +175,11 @@ function loadKeys(){
       });
     });
     
-    // Thêm event listener cho các nút huỷ bản quyền
+    // SỬA TẠI ĐÂY: Truyền thẳng event.target (chính là nút bấm) vào hàm
     document.querySelectorAll('.revoke-btn').forEach(button => {
       button.addEventListener('click', (event) => {
         const key = event.target.getAttribute('data-key');
-        revokeLicense(key);
+        revokeLicense(key, event.target); 
       });
     });
   });
