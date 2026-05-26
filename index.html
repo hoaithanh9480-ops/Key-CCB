@@ -113,11 +113,20 @@ function copyKeyToClipboard(key) {
 }
 
 // Hàm huỷ bản quyền
-// Hàm huỷ bản quyền - ĐƠN GIẢN CHỈ RESET KEY
+// Hàm huỷ bản quyền - CHỈ RESET KEY, KHÔNG ĐỘNG VÀO USER
 async function revokeLicense(key) {
-  if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?")) {
+  if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?\n\nMã này sẽ trở về trạng thái chưa sử dụng.")) {
+    // Hiển thị loading
+    const btn = event?.target;
+    const originalText = btn?.textContent || 'Huỷ bản quyền';
+    if(btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang xử lý...';
+    }
+    
     try {
-      // Chỉ cập nhật key, không động vào user
+      // CHỈ CẬP NHẬT KEY, KHÔNG ĐỘNG VÀO USER
+      // Điều này tránh lỗi permission_denied
       await database.ref('licenseKeys/'+key).update({
         used: false,
         usedAt: null,
@@ -125,16 +134,20 @@ async function revokeLicense(key) {
         usedByEmail: null
       });
       
-      alert("✅ Đã huỷ bản quyền cho mã: " + key);
-      loadKeys();
+      alert("✅ Đã huỷ bản quyền cho mã: " + key + "\n\nKey này đã sẵn sàng để sử dụng lại.");
+      loadKeys(); // Tải lại danh sách
       
     } catch (error) {
-      console.error("Lỗi:", error);
-      alert("Có lỗi xảy ra: " + error.message);
+      console.error("Lỗi khi huỷ bản quyền:", error);
+      alert("❌ Có lỗi xảy ra: " + error.message);
+    } finally {
+      if(btn) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     }
   }
 }
-
 // Hiển thị key
 function loadKeys(){
   database.ref('licenseKeys').on('value', snap => {
