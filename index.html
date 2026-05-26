@@ -98,7 +98,7 @@ async function createKeys(){
     const data = { generatedAt: timestamp, used:false, usedAt:null };
     await database.ref('licenseKeys/'+key).set(data);
   }
-  loadKeys();
+  // Loại bỏ gọi lại loadKeys dư thừa ở đây vì .on('value') đã tự động chạy
 }
 
 document.getElementById('generateBtn').addEventListener('click', createKeys);
@@ -112,18 +112,17 @@ function copyKeyToClipboard(key) {
   });
 }
 
-// Hàm huỷ bản quyền
-// Hàm huỷ bản quyền - CHỈ RESET KEY, KHÔNG ĐỘNG VÀO USER
-async function revokeLicense(key, btn) {
+// Hàm huỷ bản quyền chuẩn hóa
+async function revokeLicense(key, btnElement) {
   if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?\n\nMã này sẽ trở về trạng thái chưa sử dụng.")) {
-    const originalText = btn ? btn.textContent : 'Huỷ bản quyền';
-    if(btn) {
-      btn.disabled = true;
-      btn.textContent = '⏳ Đang xử lý...';
+    
+    if(btnElement) {
+      btnElement.disabled = true;
+      btnElement.textContent = '⏳ Đang xử lý...';
     }
     
     try {
-      // Cập nhật trạng thái key về chưa sử dụng
+      // Chỉ cập nhật trạng thái tại nhánh licenseKeys
       await database.ref('licenseKeys/'+key).update({
         used: false,
         usedAt: null,
@@ -132,28 +131,28 @@ async function revokeLicense(key, btn) {
       });
       
       alert("✅ Đã huỷ bản quyền cho mã: " + key + "\n\nKey này đã sẵn sàng để sử dụng lại.");
-      // Không cần gọi loadKeys() vì .on('value') sẽ tự động cập nhật thời gian thực
       
     } catch (error) {
       console.error("Lỗi khi huỷ bản quyền:", error);
       alert("❌ Có lỗi xảy ra: " + error.message);
-    } finally {
-      if(btn) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
     }
   }
 }
-// Hiển thị key
-function loadKeys(){
+
+// Lắng nghe dữ liệu thời gian thực và hiển thị bảng
+function initLicenseManager(){
   database.ref('licenseKeys').on('value', snap => {
-    if(!snap.exists()){ document.getElementById('keysTable').innerHTML = '<p>Chưa có mã nào.</p>'; return; }
+    if(!snap.exists()){ 
+      document.getElementById('keysTable').innerHTML = '<p>Chưa có mã nào.</p>'; 
+      return; 
+    }
+    
     const keys = snap.val();
     let html = `<table><thead><tr><th>Mã</th><th>Trạng thái</th><th>Ngày tạo</th><th>Ngày cấp</th><th>Người dùng</th><th>Email</th><th>Thao tác</th></tr></thead><tbody>`;
+    
     Object.entries(keys).forEach(([k,v])=>{
       html += `<tr class="${v.used?'key-used':'key-unused'}">
-        <td><code>${k}</code> <button class="copy-btn" data-key="${k}">Nhấp</button></td>
+        <td><code>${k}</code> <button class="copy-btn" data-key="${k}">Sao chép</button></td>
         <td>${v.used?'✅ Đã cấp':'🔄 Chưa cấp'}</td>
         <td>${v.generatedAt?new Date(v.generatedAt).toLocaleDateString('vi-VN'):'---'}</td>
         <td>${v.usedAt?new Date(v.usedAt).toLocaleDateString('vi-VN'):'---'}</td>
@@ -167,25 +166,26 @@ function loadKeys(){
     html += `</tbody></table>`;
     document.getElementById('keysTable').innerHTML = html;
 
-    // Thêm event listener cho các nút sao chép
+    // Gán sự kiện Sao chép
     document.querySelectorAll('.copy-btn').forEach(button => {
-      button.addEventListener('click', (event) => {
-        const key = event.target.getAttribute('data-key');
+      button.onclick = (e) => {
+        const key = e.currentTarget.getAttribute('data-key');
         copyKeyToClipboard(key);
-      });
+      };
     });
     
-    // SỬA TẠI ĐÂY: Truyền thẳng event.target (chính là nút bấm) vào hàm
+    // Gán sự kiện Hủy bản quyền (Sử dụng e.currentTarget để định vị chính xác phần tử click)
     document.querySelectorAll('.revoke-btn').forEach(button => {
-      button.addEventListener('click', (event) => {
-        const key = event.target.getAttribute('data-key');
-        revokeLicense(key, event.target); 
-      });
+      button.onclick = (e) => {
+        const key = e.currentTarget.getAttribute('data-key');
+        revokeLicense(key, e.currentTarget); 
+      };
     });
   });
 }
 
-loadKeys();
+// Chạy khởi tạo ứng dụng
+initLicenseManager();
 </script>
 </body>
 </html>
