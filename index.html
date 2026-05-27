@@ -3,49 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý Độc lập - Kết nối Realtime</title>
+  <title>Quản lý bản quyền</title>
   <style>
     body {font-family: Arial, sans-serif; background:#f4f6f8; margin:0; padding:20px;}
     h1 {text-align:center; margin-bottom:20px;}
-    
-    /* Giao diện chia 2 cột */
-    .dashboard-container {
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
-    }
-    .column-left, .column-right {
-      flex: 1;
-      min-width: 320px;
-    }
-    
-    .form-container, .table-container {
-      background:#fff; 
-      padding:20px; 
-      border-radius:8px; 
-      box-shadow:0 2px 5px rgba(0,0,0,0.1); 
-      margin-bottom:20px;
-    }
+    .form-container, .table-container {background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-bottom:20px;}
     .form-group {margin-bottom:15px;}
     label {display:block; margin-bottom:5px; font-weight:bold;}
-    input {width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing: border-box;}
+    input {width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;}
     button {padding:10px 15px; background:#3498db; color:#fff; border:none; border-radius:4px; cursor:pointer;}
     button:hover {background:#2980b9;}
-    
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-    }
     table {width:100%; border-collapse:collapse; margin-top:10px;}
-    th, td {border:1px solid #ddd; padding:10px; text-align:left;}
+    th,td {border:1px solid #ddd; padding:10px; text-align:left;}
     th {background:#f2f2f2;}
-    
-    .key-used, .user-licensed {background:#d4edda;}
-    .key-unused, .user-unlicensed {background:#fff3cd;}
-    
+    .key-used {background:#d4edda;}
+    .key-unused {background:#fff3cd;}
     .copy-btn {
       padding: 5px 10px;
-      margin-left: 5px;
+      margin-left: 10px;
       background: #5cb85c;
       color: white;
       border: none;
@@ -53,10 +28,12 @@
       cursor: pointer;
       font-size: 0.8em;
     }
-    .copy-btn:hover { background: #4cae4c; }
-    
+    .copy-btn:hover {
+      background: #4cae4c;
+    }
     .revoke-btn {
       padding: 5px 10px;
+      margin-left: 5px;
       background: #d9534f;
       color: white;
       border: none;
@@ -64,69 +41,31 @@
       cursor: pointer;
       font-size: 0.8em;
     }
-    .revoke-btn:hover { background: #c9302c; }
-
-    @media (max-width: 992px) {
-      .dashboard-container { flex-direction: column; }
+    .revoke-btn:hover {
+      background: #c9302c;
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-
-<h1>Hệ thống Quản lý Độc lập</h1>
-
-<div class="dashboard-container">
-  
-  <div class="column-left">
-    <div class="form-container">
-      <h3>📝 Tạo mã bản quyền độc lập</h3>
-      <div class="form-group">
-        <label for="keyCount">Số lượng mã cần tạo</label>
-        <input type="number" id="keyCount" value="5" min="1" max="1000">
-      </div>
-      <div class="form-group">
-        <label for="keyLength">Độ dài mã (6-20 ký tự)</label>
-        <input type="number" id="keyLength" value="8" min="6" max="20">
-      </div>
-      <button id="generateBtn">Tạo mã bản quyền</button>
-    </div>
-
-    <div class="table-container">
-      <h3>📋 Danh sách mã bản quyền</h3>
-      <div class="table-responsive" id="keysTable"></div>
-    </div>
+<h1>Quản lý mã bản quyền</h1>
+<div class="form-container">
+  <h3>📝 Tạo mã bản quyền mới</h3>
+  <div class="form-group">
+    <label for="keyCount">Số lượng mã</label>
+    <input type="number" id="keyCount" value="5" min="1" max="1000">
   </div>
-  
-  <div class="column-right">
-    <div class="form-container" style="border-top: 4px solid #e67e22;">
-      <h3>👥 Tạo tài khoản hệ thống (Chưa kích hoạt VIP)</h3>
-      <div class="form-group">
-        <label for="userCount">Số lượng User cần tạo</label>
-        <input type="number" id="userCount" value="5" min="1" max="100">
-      </div>
-      <div class="form-group">
-        <label for="userLength">Độ dài tên tài khoản</label>
-        <input type="number" id="userLength" value="6" min="4" max="15">
-      </div>
-      <div class="form-group">
-        <label for="userPass">Mật khẩu cấp cho User</label>
-        <input type="text" id="userPass" value="123456">
-      </div>
-      <button id="generateUserBtn" style="background:#e67e22;">Tạo User & Password</button>
-    </div>
-
-    <div class="table-container">
-      <h3>👥 Danh sách User & Trạng thái kích hoạt VIP</h3>
-      <div class="table-responsive" id="usersTable">
-        <p>Đang tải danh sách tài khoản...</p>
-      </div>
-    </div>
+  <div class="form-group">
+    <label for="keyLength">Độ dài mã (6-20 ký tự)</label>
+    <input type="number" id="keyLength" value="8" min="6" max="20">
   </div>
-
+  <button id="generateBtn">Tạo mã</button>
 </div>
-
+<div class="table-container">
+  <h3>📋 Danh sách mã bản quyền</h3>
+  <div id="keysTable"></div>
+</div>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBiaG-H9SzpYQqr3YgOODG4SM2WEqmhwb8",
@@ -140,173 +79,122 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Hàm sinh mã ngẫu nhiên
-function generateRandomString(len=8){
+function generateKey(len=8){
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let res = "";
   for(let i=0;i<len;i++) res += chars.charAt(Math.floor(Math.random()*chars.length));
   return res;
 }
 
-// [CỘT 1] Tạo danh sách mã bản quyền trống hoàn toàn độc lập
 async function createKeys(){
   const count = parseInt(document.getElementById('keyCount').value)||1;
   const length = parseInt(document.getElementById('keyLength').value)||8;
   const timestamp = new Date().toISOString();
 
   for(let i=0;i<count;i++){
-    const key = generateRandomString(length);
-    const data = { 
-      generatedAt: timestamp, 
-      used: false, 
-      usedAt: null,
-      usedBy: null,
-      usedByEmail: null
-    };
+    const key = generateKey(length);
+    const data = { generatedAt: timestamp, used:false, usedAt:null };
     await database.ref('licenseKeys/'+key).set(data);
   }
 }
+
 document.getElementById('generateBtn').addEventListener('click', createKeys);
 
-
-// [CỘT 2] Tạo User & Mật khẩu đồng bộ đúng theo cấu trúc Rules của bạn
-async function createUsersAndPasswords() {
-  const count = parseInt(document.getElementById('userCount').value) || 1;
-  const length = parseInt(document.getElementById('userLength').value) || 6;
-  const password = document.getElementById('userPass').value.trim() || "123456";
-
-  const btn = document.getElementById('generateUserBtn');
-  btn.disabled = true;
-  btn.textContent = "⏳ Đang tạo...";
-
-  try {
-    for(let i=0; i<count; i++) {
-      // Sinh email ngẫu nhiên dạng userxxxx@gmail.com
-      const username = "user" + generateRandomString(length).toLowerCase();
-      const email = `${username}@gmail.com`;
-      
-      // Tạo UID ngẫu nhiên đóng vai trò làm ID liên kết Auth
-      const customUid = "UID_" + generateRandomString(12); 
-
-      // Đẩy dữ liệu cấu trúc license trống lên Database nhằm tuân thủ Rules bảo mật nghiêm ngặt của bạn
-      const userData = {
-        license: {
-          licensed: false,
-          key: null,
-          activatedAt: null
-        }
-      };
-      
-      // Lưu thông tin vào database. Khi người dùng lấy UID/Email này nhập vào thiết bị, hệ thống sẽ tự đối chiếu.
-      await database.ref('users/' + customUid).set(userData);
-    }
-    alert(`✅ Đã tạo xong ${count} tài khoản trống! Thông tin hiển thị ở bảng bên phải.`);
-  } catch (error) {
-    console.error(error);
-    alert("❌ Lỗi: " + error.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Tạo User & Password";
-  }
-}
-document.getElementById('generateUserBtn').addEventListener('click', createUsersAndPasswords);
-
-
-// Hàm sao chép nhanh dữ liệu
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    alert("Đã sao chép: " + text);
+function copyKeyToClipboard(key) {
+  navigator.clipboard.writeText(key).then(() => {
+    alert("Đã sao chép: " + key);
+  }).catch(err => {
+    console.error('Không thể sao chép mã: ', err);
   });
 }
 
-// Hàm hủy bản quyền / Tách liên kết giữa Key và User
+// HÀM HUỶ BẢN QUYỀN MỚI: Xử lý cả Key lẫn User
 async function revokeLicense(key, btnElement) {
-  if(!key || key === '---') return;
-  if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?")) {
-    if(btnElement) { btnElement.disabled = true; btnElement.textContent = '⏳...'; }
+  if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?\n\nUser đang sử dụng mã này sẽ bị khóa bản quyền ngay lập tức!")) {
+    
+    if(btnElement) {
+      btnElement.disabled = true;
+      btnElement.textContent = '⏳ Đang xử lý...';
+    }
+    
     try {
+      // 1. Lấy thông tin hiện tại của key xem ai đang giữ nó
       const snapshot = await database.ref('licenseKeys/' + key).get();
       if (snapshot.exists()) {
         const keyData = snapshot.val();
-        const userId = keyData.usedBy;
+        const userId = keyData.usedBy; // Lấy UID của user từ trường usedBy
+
+        // 2. Nếu tìm thấy UID của user, tiến hành đặt licensed thành false ở nhánh users
         if (userId) {
           await database.ref('users/' + userId + '/license').update({
-            licensed: false, key: null, activatedAt: null
+            licensed: false,
+            key: null,
+            activatedAt: null
           });
+          console.log("Đã hủy trạng thái bản quyền của User: " + userId);
         }
       }
+
+      // 3. Tiến hành reset trạng thái Key về chưa sử dụng
       await database.ref('licenseKeys/' + key).update({
-        used: false, usedAt: null, usedBy: null, usedByEmail: null
+        used: false,
+        usedAt: null,
+        usedBy: null,
+        usedByEmail: null
       });
-      alert("✅ Đã hủy liên kết bản quyền thành công!");
+      
+      alert("✅ Đã hủy bản quyền thành công!\n- Mã " + key + " đã sẵn sàng tái sử dụng.\n- Tài khoản người dùng liên quan đã bị khóa.");
+      
     } catch (error) {
-      alert("❌ Lỗi: " + error.message);
+      console.error("Lỗi khi huỷ bản quyền:", error);
+      alert("❌ Có lỗi xảy ra khi xử lý dữ liệu: " + error.message);
     }
   }
 }
 
-// Chuyển định dạng thời gian trực quan
-function formatTimeDisplay(timeData) {
-  if(!timeData) return '---';
-  const dateObj = new Date(timeData);
-  return isNaN(dateObj.getTime()) ? '---' : dateObj.toLocaleString('vi-VN');
-}
-
-// LẮNG NGHE REALTIME CỘT 1: Bảng danh sách Mã bản quyền
 function initLicenseManager(){
   database.ref('licenseKeys').on('value', snap => {
-    if(!snap.exists()){ document.getElementById('keysTable').innerHTML = '<p>Chưa có mã nào.</p>'; return; }
+    if(!snap.exists()){ 
+      document.getElementById('keysTable').innerHTML = '<p>Chưa có mã nào.</p>'; 
+      return; 
+    }
+    
     const keys = snap.val();
-    let html = `<table><thead><tr><th>Mã Bản Quyền</th><th>Trạng thái sử dụng</th><th>Hành động</th></tr></thead><tbody>`;
+    let html = `<table><thead><tr><th>Mã</th><th>Trạng thái</th><th>Ngày tạo</th><th>Ngày cấp</th><th>UID Người dùng</th><th>Email</th><th>Thao tác</th></tr></thead><tbody>`;
+    
     Object.entries(keys).forEach(([k,v])=>{
-      let statusText = '🔄 Trống (Chưa sử dụng)';
-      if(v.used){
-        statusText = `🟢 <b>Đã kích hoạt bởi User:</b><br><small><code>${v.usedBy || 'Ẩn UID'}</code></small>`;
-      }
       html += `<tr class="${v.used?'key-used':'key-unused'}">
-        <td><code>${k}</code> <button class="copy-btn" data-copy="${k}">Copy</button></td>
-        <td>${statusText}</td>
-        <td>${v.used ? `<button class="revoke-btn" data-key="${k}">Thu hồi mã</button>` : '---'}</td>
+        <td><code>${k}</code> <button class="copy-btn" data-key="${k}">Sao chép</button></td>
+        <td>${v.used?'✅ Đã cấp':'🔄 Chưa cấp'}</td>
+        <td>${v.generatedAt?new Date(v.generatedAt).toLocaleDateString('vi-VN'):'---'}</td>
+        <td>${v.usedAt?new Date(v.usedAt).toLocaleDateString('vi-VN'):'---'}</td>
+        <td><small><code>${v.usedBy||'---'}</code></small></td>
+        <td>${v.usedByEmail||'---'}</td>
+        <td>
+          ${v.used ? `<button class="revoke-btn" data-key="${k}">Huỷ bản quyền</button>` : '---'}
+        </td>
       </tr>`;
     });
     html += `</tbody></table>`;
     document.getElementById('keysTable').innerHTML = html;
-    document.querySelectorAll('#keysTable .copy-btn').forEach(b => b.onclick = (e) => copyToClipboard(e.currentTarget.getAttribute('data-copy')));
-    document.querySelectorAll('#keysTable .revoke-btn').forEach(b => b.onclick = (e) => revokeLicense(e.currentTarget.getAttribute('data-key'), e.currentTarget));
-  });
-}
 
-// LẮNG NGHE REALTIME CỘT 2: Bảng danh sách User (Tự cập nhật khi có người nhập mã trên App)
-function initUserManager(){
-  database.ref('users').on('value', snap => {
-    if(!snap.exists()){ document.getElementById('usersTable').innerHTML = '<p>Chưa có người dùng nào.</p>'; return; }
-    const users = snap.val();
-    let html = `<table><thead><tr><th>UID / Tài khoản</th><th>Quyền truy cập App</th><th>Mã Bản Quyền Đang Dùng</th><th>Thời gian kích hoạt</th></tr></thead><tbody>`;
-    
-    Object.entries(users).forEach(([uid, userVal]) => {
-      const license = userVal.license || {};
-      const isLicensed = license.licensed === true;
-      const activatedKey = license.key || '---';
-      const activeAt = license.activatedAt ? formatTimeDisplay(license.activatedAt) : '---';
-
-      html += `<tr class="${isLicensed ? 'user-licensed' : 'user-unlicensed'}">
-        <td>
-          <code>${uid}</code> <button class="copy-btn" data-copy="${uid}">Copy UID</button>
-        </td>
-        <td><b>${isLicensed ? '🟢 ĐÃ KÍCH HOẠT VIP' : '🔴 Tài khoản thường'}</b></td>
-        <td><code>${activatedKey}</code></td>
-        <td><small>${activeAt}</small></td>
-      </tr>`;
+    document.querySelectorAll('.copy-btn').forEach(button => {
+      button.onclick = (e) => {
+        const key = e.currentTarget.getAttribute('data-key');
+        copyKeyToClipboard(key);
+      };
     });
-    html += `</tbody></table>`;
-    document.getElementById('usersTable').innerHTML = html;
-    document.querySelectorAll('#usersTable .copy-btn').forEach(b => b.onclick = (e) => copyToClipboard(e.currentTarget.getAttribute('data-copy')));
+    
+    document.querySelectorAll('.revoke-btn').forEach(button => {
+      button.onclick = (e) => {
+        const key = e.currentTarget.getAttribute('data-key');
+        revokeLicense(key, e.currentTarget); 
+      };
+    });
   });
 }
 
-// Khởi chạy đồng bộ ứng dụng quản lý
 initLicenseManager();
-initUserManager();
 </script>
 </body>
 </html>
