@@ -2,315 +2,681 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý Bản quyền & Tạo User</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>双栏管理 · 版权码 + 批量创建用户</title>
   <style>
-    body {font-family: Arial, sans-serif; background:#f4f6f8; margin:0; padding:20px;}
-    h1 {text-align:center; margin-bottom:20px;}
-    
-    /* Giao diện chia 2 cột */
-    .dashboard-container {
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #eef2f7;
+      margin: 0;
+      padding: 24px 20px;
+    }
+    .dashboard {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #1a2c3e;
       display: flex;
-      gap: 20px;
-      align-items: flex-start;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
-    .column-left, .column-right {
+    .two-columns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+    }
+    .col {
       flex: 1;
-      min-width: 320px;
+      min-width: 340px;
+      background: transparent;
     }
-    
-    .form-container, .table-container {
-      background:#fff; 
-      padding:20px; 
-      border-radius:8px; 
-      box-shadow:0 2px 5px rgba(0,0,0,0.1); 
-      margin-bottom:20px;
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
+      overflow: hidden;
+      transition: all 0.2s;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
-    .form-group {margin-bottom:15px;}
-    label {display:block; margin-bottom:5px; font-weight:bold;}
-    input {width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing: border-box;}
-    button {padding:10px 15px; background:#3498db; color:#fff; border:none; border-radius:4px; cursor:pointer;}
-    button:hover {background:#2980b9;}
-    
-    .table-responsive {
+    .card-header {
+      padding: 18px 24px 10px 24px;
+      border-bottom: 1px solid #e9edf2;
+      background: #fefefe;
+    }
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.45rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #2c3e50;
+    }
+    .card-body {
+      padding: 20px 24px 24px 24px;
+      flex: 1;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #2c3e50;
+      letter-spacing: 0.3px;
+    }
+    input, select {
       width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ccd7e6;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      transition: 0.2s;
+      background: #fff;
+    }
+    input:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+    }
+    button {
+      background: #3498db;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    button:hover {
+      background: #2c7ab3;
+      transform: translateY(-1px);
+    }
+    .danger-btn {
+      background: #e67e22;
+    }
+    .danger-btn:hover {
+      background: #d35400;
+    }
+    .table-wrapper {
       overflow-x: auto;
+      border-radius: 18px;
+      margin-top: 16px;
+      max-height: 460px;
+      overflow-y: auto;
     }
-    table {width:100%; border-collapse:collapse; margin-top:10px;}
-    th, td {border:1px solid #ddd; padding:10px; text-align:left;}
-    th {background:#f2f2f2;}
-    
-    .key-used, .user-licensed {background:#d4edda;}
-    .key-unused, .user-unlicensed {background:#fff3cd;}
-    
-    .copy-btn {
-      padding: 5px 10px;
-      margin-left: 5px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    th, td {
+      padding: 10px 10px;
+      text-align: left;
+      border-bottom: 1px solid #ecf0f1;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #f8fafd;
+      font-weight: 700;
+      color: #2c3e50;
+      position: sticky;
+      top: 0;
+    }
+    .key-used {
+      background-color: #e0f7e8;
+    }
+    .key-unused {
+      background-color: #fff8e7;
+    }
+    code {
+      background: #f0f2f5;
+      padding: 3px 6px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.75rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .badge-active {
+      background: #d4edda;
+      color: #155724;
+    }
+    .badge-inactive {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .action-btns {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .copy-btn-sm, .copy-user-btn {
       background: #5cb85c;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8em;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      border-radius: 30px;
+      margin-left: 5px;
     }
-    .copy-btn:hover { background: #4cae4c; }
-    
-    .revoke-btn {
+    .revoke-small {
+      background: #e67e22;
       padding: 5px 10px;
-      background: #d9534f;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8em;
+      font-size: 0.7rem;
     }
-    .revoke-btn:hover { background: #c9302c; }
-
-    @media (max-width: 992px) {
-      .dashboard-container { flex-direction: column; }
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+    hr {
+      margin: 14px 0;
+      border-color: #e9ecef;
+    }
+    .user-pass-card {
+      background: #fef6e0;
+      border-radius: 16px;
+      padding: 10px 14px;
+      margin-top: 18px;
+      font-size: 0.75rem;
+      border-left: 4px solid #f1c40f;
+    }
+    @media (max-width: 780px) {
+      .two-columns { flex-direction: column; }
+      body { padding: 16px; }
+    }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 0.7rem;
+      color: #95a5a6;
+    }
+    .grant-btn {
+      background: #2ecc71;
+    }
+    .grant-btn:hover {
+      background: #27ae60;
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-
-<h1>Hệ thống Quản lý Tổng thể</h1>
-
-<div class="dashboard-container">
-  
-  <div class="column-left">
-    <div class="form-container">
-      <h3>📝 Tạo mã bản quyền trống (Chưa có User)</h3>
-      <div class="form-group">
-        <label for="keyCount">Số lượng mã</label>
-        <input type="number" id="keyCount" value="5" min="1" max="1000">
+<div class="dashboard">
+  <h1>📋 Quản trị bản quyền + Người dùng</h1>
+  <div class="two-columns">
+    
+    <!-- Cột TRÁI: QUẢN LÝ MÃ BẢN QUYỀN -->
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          <h2>🔑 Quản lý mã bản quyền</h2>
+        </div>
+        <div class="card-body">
+          <div style="margin-bottom: 20px;">
+            <div class="form-group">
+              <label>📦 Số lượng mã</label>
+              <input type="number" id="keyCount" value="5" min="1" max="500">
+            </div>
+            <div class="form-group">
+              <label>🔢 Độ dài mã (6-20)</label>
+              <input type="number" id="keyLength" value="8" min="6" max="20">
+            </div>
+            <button id="generateKeysBtn">✨ Tạo mã bản quyền</button>
+          </div>
+          <div class="table-wrapper">
+            <div id="keysTableArea">Đang tải danh sách mã...</div>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="keyLength">Độ dài mã (6-20 ký tự)</label>
-        <input type="number" id="keyLength" value="8" min="6" max="20">
-      </div>
-      <button id="generateBtn">Tạo mã</button>
     </div>
 
-    <div class="table-container">
-      <h3>📋 Danh sách mã bản quyền</h3>
-      <div class="table-responsive" id="keysTable"></div>
+    <!-- Cột PHẢI: QUẢN LÝ USER + TẠO USER HÀNG LOẠT -->
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          <h2>👥 Quản lý & tạo User</h2>
+        </div>
+        <div class="card-body">
+          <!-- Khu vực tạo user hàng loạt giống như tạo mã -->
+          <div style="background: #f9fafc; padding: 16px 18px; border-radius: 20px; margin-bottom: 24px;">
+            <h3 style="margin:0 0 12px 0; font-size:1.1rem;">➕ Tạo tài khoản người dùng</h3>
+            <div class="form-group">
+              <label>👥 Số lượng User cần tạo</label>
+              <input type="number" id="userCount" value="3" min="1" max="200">
+            </div>
+            <div class="form-group">
+              <label>📝 Độ dài tên đăng nhập (username)</label>
+              <input type="number" id="usernameLength" value="8" min="5" max="16">
+            </div>
+            <div class="form-group">
+              <label>🔐 Độ dài mật khẩu (tự động)</label>
+              <input type="number" id="passwordLength" value="8" min="6" max="20">
+            </div>
+            <button id="batchCreateUsersBtn" style="background:#2c3e50;">👥 Tạo & Lưu User</button>
+            <div class="user-pass-card" id="batchResultMsg" style="display:none;">
+              ⚡ Kết quả tạo user sẽ hiển thị danh sách tài khoản / mật khẩu bên dưới.
+            </div>
+          </div>
+          
+          <!-- Danh sách user hiện có + thao tác -->
+          <div style="margin-top: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span><strong>📋 Danh sách người dùng</strong> (real-time)</span>
+              <button id="refreshUsersBtn" style="background:#5d6d7e; padding: 6px 14px;">🔄 Tải lại</button>
+            </div>
+            <div class="table-wrapper" style="max-height: 420px;">
+              <div id="usersTableArea">Đang tải người dùng...</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  
-  <div class="column-right">
-    <div class="form-container" style="border-top: 4px solid #2ecc71;">
-      <h3>👥 Tạo tài khoản VIP hàng loạt</h3>
-      <div class="form-group">
-        <label for="userCount">Số lượng User muốn tạo</label>
-        <input type="number" id="userCount" value="5" min="1" max="100">
-      </div>
-      <div class="form-group">
-        <label for="userLength">Độ dài tên tài khoản (Không tính đuôi @gmail.com)</label>
-        <input type="number" id="userLength" value="6" min="4" max="15">
-      </div>
-      <div class="form-group">
-        <label for="userPass">Mật khẩu chung cho các tài khoản này</label>
-        <input type="text" id="userPass" value="123456" placeholder="Nhập mật khẩu mặc định">
-      </div>
-      <button id="generateUserBtn" style="background:#2ecc71;">Tạo tài khoản & Kích hoạt sẵn</button>
-    </div>
-
-    <div class="table-container">
-      <h3>👥 Danh sách User hệ thống</h3>
-      <div class="table-responsive" id="usersTable">
-        <p>Đang tải dữ liệu người dùng...</p>
-      </div>
-    </div>
-  </div>
-
+  <footer>⚡ Quản trị viên toàn quyền tạo mã / tạo user / cấp quyền / thu hồi • Dữ liệu realtime</footer>
 </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBiaG-H9SzpYQqr3YgOODG4SM2WEqmhwb8",
-  authDomain: "hoi-ccb.firebaseapp.com",
-  databaseURL: "https://hoi-ccb-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "hoi-ccb",
-  storageBucket: "hoi-ccb.firebasestorage.app",
-  messagingSenderId: "344971473549",
-  appId: "1:344971473549:web:7d4db3d5d328401164e8c4"
-};
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+  // ---------- FIREBASE ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyBiaG-H9SzpYQqr3YgOODG4SM2WEqmhwb8",
+    authDomain: "hoi-ccb.firebaseapp.com",
+    databaseURL: "https://hoi-ccb-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hoi-ccb",
+    storageBucket: "hoi-ccb.firebasestorage.app",
+    messagingSenderId: "344971473549",
+    appId: "1:344971473549:web:7d4db3d5d328401164e8c4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
 
-// Hàm sinh chuỗi ngẫu nhiên (Dùng chung cho cả Key và Username)
-function generateRandomString(len=8){
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let res = "";
-  for(let i=0;i<len;i++) res += chars.charAt(Math.floor(Math.random()*chars.length));
-  return res;
-}
-
-// [Hàm Cột 1] Tạo mã bản quyền rời
-async function createKeys(){
-  const count = parseInt(document.getElementById('keyCount').value)||1;
-  const length = parseInt(document.getElementById('keyLength').value)||8;
-  const timestamp = new Date().toISOString();
-
-  for(let i=0;i<count;i++){
-    const key = generateRandomString(length);
-    const data = { generatedAt: timestamp, used:false, usedAt:null };
-    await database.ref('licenseKeys/'+key).set(data);
-  }
-}
-document.getElementById('generateBtn').addEventListener('click', createKeys);
-
-
-// [Hàm Cột 2 MỚI] TẠO USER HÀNG LOẠT VÀ TỰ ĐỘNG GÁN SẴN BẢN QUYỀN
-async function createUsersBulk() {
-  const count = parseInt(document.getElementById('userCount').value) || 1;
-  const length = parseInt(document.getElementById('userLength').value) || 6;
-  const password = document.getElementById('userPass').value.trim() || "123456";
-  const timestamp = new Date().toISOString();
-
-  if(!password) { alert("Vui lòng nhập mật khẩu!"); return; }
-
-  const btn = document.getElementById('generateUserBtn');
-  btn.disabled = true;
-  btn.textContent = "⏳ Đang tạo...";
-
-  try {
-    for(let i=0; i<count; i++) {
-      // 1. Tạo Username ngẫu nhiên dạng viết thường + kết hợp đuôi email (ví dụ: ccb39f82@gmail.com)
-      const randomUser = "ccb" + generateRandomString(length).toLowerCase();
-      const email = `${randomUser}@gmail.com`;
-      
-      // Tạo một chuỗi UID giả định ngẫu nhiên giống định dạng Firebase Auth để lưu trữ 
-      const customUid = "USER_" + generateRandomString(12); 
-      // Tạo một mã key riêng gán thẳng cho tài khoản này
-      const licenseKey = "VIP" + generateRandomString(6);
-
-      // 2. Đẩy dữ liệu vào nhánh 'users' (Đặt trạng thái Đã kích hoạt bản quyền)
-      const userData = {
-        email: email,
-        password: password, // Lưu mật khẩu text để bạn dễ xuất ra giao cho khách
-        uid: customUid,
-        license: {
-          activatedAt: timestamp,
-          key: licenseKey,
-          licensed: true
-        }
-      };
-      await database.ref('users/' + customUid).set(userData);
-
-      // 3. Đẩy đồng bộ sang nhánh 'licenseKeys' để báo mã này đã có người dùng
-      const keyData = {
-        generatedAt: timestamp,
-        used: true,
-        usedAt: timestamp,
-        usedBy: customUid,
-        usedByEmail: email
-      };
-      await database.ref('licenseKeys/' + licenseKey).set(keyData);
+  // ---------- Helper: random string ----------
+  function randomString(length, chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") {
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    alert(`✅ Đã tạo thành công ${count} tài khoản VIP! Thao tác xem ở bảng bên dưới.`);
-  } catch (error) {
-    console.error(error);
-    alert("❌ Lỗi: " + error.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Tạo tài khoản & Kích hoạt sẵn";
+    return result;
   }
-}
-document.getElementById('generateUserBtn').addEventListener('click', createUsersBulk);
 
+  // Tạo username không trùng (kiểm tra nhanh trong batch)
+  async function isUsernameExists(username) {
+    const snapshot = await database.ref(`users`).orderByChild("username").equalTo(username).once("value");
+    return snapshot.exists();
+  }
 
-// Hàm copy dữ liệu nhanh
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    alert("Đã sao chép: " + text);
-  });
-}
+  // Tạo mới user với username, password (lưu plaintext vì demo quản lý, có thể hash nhưng admin cần xem mật khẩu để cung cấp)
+  // Lưu ý: Trong thực tế nên hash, nhưng với mục đích "cung cấp user/pass cho người dùng" ta lưu dưới dạng plain để tiện copy.
+  // Cấu trúc mỗi user: { username, password, createdAt, license: { licensed: false, key: null, activatedAt: null }, email (có thể tạo email giả)}
+  async function createUserBatch(count, usernameLen, passLen) {
+    const createdUsers = [];
+    const errors = [];
+    const timestamp = new Date().toISOString();
+    for (let i = 0; i < count; i++) {
+      let username = "";
+      let unique = false;
+      let attempts = 0;
+      while (!unique && attempts < 10) {
+        const rawUsername = randomString(usernameLen, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+        username = rawUsername;
+        const exists = await isUsernameExists(username);
+        if (!exists) unique = true;
+        attempts++;
+      }
+      if (!unique) {
+        errors.push(`Không thể tạo username duy nhất sau nhiều lần thử (index ${i})`);
+        continue;
+      }
+      const password = randomString(passLen, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%");
+      const fakeEmail = `${username}@temp.user`;
+      const newUserRef = database.ref(`users`).push();
+      const uid = newUserRef.key; // push ID làm UID chính
+      const userData = {
+        username: username,
+        password: password,     // Lưu để admin xem và cung cấp cho người dùng
+        email: fakeEmail,
+        createdAt: timestamp,
+        license: {
+          licensed: false,
+          key: null,
+          activatedAt: null
+        },
+        rawPass: password       // để dễ hiển thị
+      };
+      await newUserRef.set(userData);
+      createdUsers.push({ uid, username, password, email: fakeEmail });
+    }
+    return { createdUsers, errors };
+  }
 
-// Hủy bản quyền / Khóa tài khoản
-async function revokeLicense(key, btnElement) {
-  if(!key || key === '---') { alert("Không tìm thấy mã bản quyền hợp lệ để hủy!"); return; }
-  if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?")) {
-    if(btnElement) { btnElement.disabled = true; btnElement.textContent = '⏳...'; }
+  // Hiển thị thông báo kết quả tạo user + danh sách đợt mới
+  function showBatchResult(usersList) {
+    if (!usersList.length) {
+      alert("Không có user nào được tạo (kiểm tra log)");
+      return;
+    }
+    let msg = "✅ Đã tạo thành công " + usersList.length + " tài khoản:\n\n";
+    usersList.forEach((u, idx) => {
+      msg += `${idx+1}. Tên đăng nhập: ${u.username}\n   Mật khẩu: ${u.password}\n   (UID: ${u.uid.substring(0,12)}...)\n\n`;
+    });
+    msg += "📋 Thông tin đã lưu vào Firebase. Bạn có thể sao chép thủ công từ bảng bên dưới.";
+    alert(msg);
+    // reload bảng user ngay lập tức
+    fetchUsersAndRenderTable();
+  }
+
+  // ---- XỬ LÝ MÃ BẢN QUYỀN (giữ nguyên chức năng) ----
+  function generateKey(length) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let res = "";
+    for (let i = 0; i < length; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+    return res;
+  }
+
+  async function createMultipleKeys(count, length) {
+    const timestamp = new Date().toISOString();
+    const updates = {};
+    for (let i = 0; i < count; i++) {
+      const key = generateKey(length);
+      updates[`licenseKeys/${key}`] = {
+        generatedAt: timestamp,
+        used: false,
+        usedAt: null,
+        usedBy: null,
+        usedByEmail: null
+      };
+    }
+    await database.ref().update(updates);
+    return Object.keys(updates).length;
+  }
+
+  // Thu hồi bản quyền từ key (xóa liên kết user)
+  async function revokeLicenseByKey(key, btnElement) {
+    if (!confirm(`❓ Thu hồi bản quyền mã: ${key}\nUser đang dùng sẽ mất quyền ngay lập tức.`)) return;
+    if (btnElement) {
+      btnElement.disabled = true;
+      btnElement.innerText = "⏳...";
+    }
     try {
-      const snapshot = await database.ref('licenseKeys/' + key).get();
-      if (snapshot.exists()) {
-        const keyData = snapshot.val();
+      const keySnap = await database.ref(`licenseKeys/${key}`).get();
+      if (keySnap.exists()) {
+        const keyData = keySnap.val();
         const userId = keyData.usedBy;
         if (userId) {
-          await database.ref('users/' + userId + '/license').update({
-            licensed: false, key: null, activatedAt: null
+          await database.ref(`users/${userId}/license`).update({
+            licensed: false,
+            key: null,
+            activatedAt: null
           });
         }
+        await database.ref(`licenseKeys/${key}`).update({
+          used: false,
+          usedAt: null,
+          usedBy: null,
+          usedByEmail: null
+        });
+        alert(`✅ Đã thu hồi thành công mã ${key}.`);
+      } else {
+        alert("Không tìm thấy key.");
       }
-      await database.ref('licenseKeys/' + key).update({
-        used: false, usedAt: null, usedBy: null, usedByEmail: null
-      });
-      alert("✅ Đã hủy trạng thái VIP thành công!");
-    } catch (error) {
-      alert("❌ Lỗi: " + error.message);
+    } catch (err) {
+      alert("Lỗi thu hồi: " + err.message);
+    } finally {
+      if (btnElement) { btnElement.disabled = false; btnElement.innerText = "Huỷ"; }
     }
   }
-}
 
-// Đọc Realtime danh sách mã bản quyền (Cột 1)
-function initLicenseManager(){
-  database.ref('licenseKeys').on('value', snap => {
-    if(!snap.exists()){ document.getElementById('keysTable').innerHTML = '<p>Chưa có mã nào.</p>'; return; }
-    const keys = snap.val();
-    let html = `<table><thead><tr><th>Mã</th><th>Trạng thái sử dụng</th><th>Thao tác</th></tr></thead><tbody>`;
-    Object.entries(keys).forEach(([k,v])=>{
-      html += `<tr class="${v.used?'key-used':'key-unused'}">
-        <td><code>${k}</code> <button class="copy-btn" data-copy="${k}">Copy</button></td>
-        <td>${v.used ? `🟢 Cấp cho: <b>${v.usedByEmail||'Ẩn'}</b>` : '🔄 Chưa cấp'}</td>
-        <td>${v.used ? `<button class="revoke-btn" data-key="${k}">Huỷ</button>` : '---'}</td>
-      </tr>`;
+  // Cấp bản quyền cho 1 user bằng cách nhập key hoặc tạo mới
+  async function grantLicenseToUser(uid, userName, userEmail) {
+    const keyInput = prompt(`🎫 Cấp bản quyền cho user: ${userName} (${uid.substring(0,10)}...)\nNhập mã KEY có sẵn từ bảng bên trái.\nĐể trống -> TỰ ĐỘNG TẠO MÃ MỚI 8 ký tự.`, "");
+    let targetKey = (keyInput && keyInput.trim() !== "") ? keyInput.trim().toUpperCase() : null;
+    if (!targetKey) {
+      targetKey = generateKey(8);
+      const checkExist = await database.ref(`licenseKeys/${targetKey}`).get();
+      if (checkExist.exists()) {
+        alert(`⚠️ Mã ${targetKey} tự sinh bị trùng, vui lòng thử lại bằng nhập tay.`);
+        return;
+      }
+      const now = new Date().toISOString();
+      await database.ref(`licenseKeys/${targetKey}`).set({
+        generatedAt: now,
+        used: false,
+        usedAt: null,
+        usedBy: null,
+        usedByEmail: null
+      });
+    }
+    const keySnap = await database.ref(`licenseKeys/${targetKey}`).get();
+    if (!keySnap.exists()) {
+      alert(`❌ Mã "${targetKey}" không tồn tại. Hãy tạo trước ở cột trái.`);
+      return;
+    }
+    const keyData = keySnap.val();
+    if (keyData.used === true) {
+      alert(`🚫 Mã "${targetKey}" đã được sử dụng. Hãy chọn mã chưa dùng.`);
+      return;
+    }
+    const activationTime = new Date().toISOString();
+    await database.ref(`users/${uid}/license`).set({
+      licensed: true,
+      key: targetKey,
+      activatedAt: activationTime,
+      email: userEmail
     });
-    html += `</tbody></table>`;
-    document.getElementById('keysTable').innerHTML = html;
-    document.querySelectorAll('#keysTable .copy-btn').forEach(b => b.onclick = (e) => copyToClipboard(e.currentTarget.getAttribute('data-copy')));
-    document.querySelectorAll('#keysTable .revoke-btn').forEach(b => b.onclick = (e) => revokeLicense(e.currentTarget.getAttribute('data-key'), e.currentTarget));
-  });
-}
+    await database.ref(`licenseKeys/${targetKey}`).update({
+      used: true,
+      usedAt: activationTime,
+      usedBy: uid,
+      usedByEmail: userEmail
+    });
+    alert(`✅ Đã cấp quyền thành công! Mã: ${targetKey}`);
+  }
 
-// Đọc Realtime danh sách User (Cột 2)
-function initUserManager(){
-  database.ref('users').on('value', snap => {
-    if(!snap.exists()){ document.getElementById('usersTable').innerHTML = '<p>Chưa có người dùng.</p>'; return; }
-    const users = snap.val();
-    let html = `<table><thead><tr><th>Tài khoản bàn giao</th><th>Mật khẩu</th><th>Trạng thái</th><th>Mã VIP</th><th>Hành động</th></tr></thead><tbody>`;
-    
-    Object.entries(users).forEach(([uid, userVal]) => {
-      const license = userVal.license || {};
+  // Thu hồi trực tiếp từ user (reset license)
+  async function revokeLicenseFromUser(uid, currentKey) {
+    if (!confirm(`Thu hồi bản quyền của user này? Key liên quan: ${currentKey || 'không rõ'}`)) return;
+    try {
+      await database.ref(`users/${uid}/license`).update({
+        licensed: false,
+        key: null,
+        activatedAt: null
+      });
+      if (currentKey && currentKey !== '—' && currentKey !== 'null') {
+        await database.ref(`licenseKeys/${currentKey}`).update({
+          used: false,
+          usedAt: null,
+          usedBy: null,
+          usedByEmail: null
+        });
+      }
+      alert("Đã thu hồi quyền của user.");
+    } catch (err) {
+      alert("Lỗi: " + err.message);
+    }
+  }
+
+  // RENDER BẢNG USER (đẹp, có nút cấp/thu hồi, copy tài khoản/mật khẩu)
+  function renderUsersTable(usersObj) {
+    if (!usersObj || Object.keys(usersObj).length === 0) {
+      document.getElementById('usersTableArea').innerHTML = '<div class="empty-state">👤 Chưa có người dùng. Hãy tạo user hàng loạt bên trên.</div>';
+      return;
+    }
+    let html = `<table style="min-width: 500px;">
+      <thead><tr><th>Username</th><th>Mật khẩu</th><th>Trạng thái License</th><th>Key đang dùng</th><th>Thao tác</th></tr></thead><tbody>`;
+    for (const [uid, user] of Object.entries(usersObj)) {
+      const license = user.license || { licensed: false };
       const isLicensed = license.licensed === true;
-      const activatedKey = license.key || '---';
-      const email = userVal.email || '---';
-      const pass = userVal.password || '---';
+      const currentKey = license.key || '—';
+      const username = user.username || uid.substring(0,8);
+      const password = user.password || user.rawPass || '********';
+      const statusBadge = isLicensed ? '<span class="badge badge-active">✔ Đã cấp quyền</span>' : '<span class="badge badge-inactive">⛔ Chưa cấp</span>';
+      // nút copy thông tin đăng nhập
+      html += `<tr>
+        <td><strong>${escapeHtml(username)}</strong><br><button class="copy-user-btn copy-username" data-username="${escapeHtml(username)}" data-pass="${escapeHtml(password)}" data-uid="${escapeHtml(uid)}">📋 Sao chép tài khoản</button></td>
+        <td><code>${escapeHtml(password)}</code><br><button class="copy-pass-only" data-pass="${escapeHtml(password)}">🔑 Copy pass</button></td>
+        <td>${statusBadge}</td>
+        <td><code>${escapeHtml(currentKey)}</code></td>
+        <td class="action-btns">
+          ${!isLicensed ? `<button class="grant-to-user-btn" data-uid="${escapeHtml(uid)}" data-name="${escapeHtml(username)}" data-email="${escapeHtml(user.email)}">🎫 Cấp bản quyền</button>` : ''}
+          ${isLicensed ? `<button class="revoke-user-license-btn" data-uid="${escapeHtml(uid)}" data-key="${escapeHtml(currentKey)}">🔻 Thu hồi</button>` : ''}
+        </td>
+      </tr>`;
+    }
+    html += `</tbody></table>`;
+    document.getElementById('usersTableArea').innerHTML = html;
+    
+    // Gắn sự kiện copy tài khoản (cả username + pass)
+    document.querySelectorAll('.copy-username').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const username = btn.getAttribute('data-username');
+        const password = btn.getAttribute('data-pass');
+        const text = `Tài khoản: ${username}\nMật khẩu: ${password}`;
+        navigator.clipboard.writeText(text).then(() => alert(`📋 Đã sao chép:\n${text}`)).catch(()=>alert("Lỗi copy"));
+        e.stopPropagation();
+      });
+    });
+    document.querySelectorAll('.copy-pass-only').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const pass = btn.getAttribute('data-pass');
+        navigator.clipboard.writeText(pass).then(()=>alert(`🔐 Đã sao chép mật khẩu: ${pass}`));
+        e.stopPropagation();
+      });
+    });
+    // Cấp quyền
+    document.querySelectorAll('.grant-to-user-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const uid = btn.getAttribute('data-uid');
+        const name = btn.getAttribute('data-name');
+        const email = btn.getAttribute('data-email') || `${name}@local`;
+        await grantLicenseToUser(uid, name, email);
+        // refresh dữ liệu tự động nhờ realtime
+      });
+    });
+    // Thu hồi từ user
+    document.querySelectorAll('.revoke-user-license-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const uid = btn.getAttribute('data-uid');
+        const key = btn.getAttribute('data-key');
+        await revokeLicenseFromUser(uid, key);
+      });
+    });
+  }
 
-      html += `<tr class="${isLicensed ? 'user-licensed' : 'user-unlicensed'}">
-        <td>
-          <code>${email}</code> <button class="copy-btn" data-copy="${email}">Copy</button>
-        </td>
-        <td><code>${pass}</code></td>
-        <td>${isLicensed ? '🟢 VIP' : '🔴 Hết hạn'}</td>
-        <td><code>${activatedKey}</code></td>
-        <td>
-          ${isLicensed ? `<button class="revoke-btn" data-key="${activatedKey}">Khóa VIP</button>` : '---'}
-        </td>
+  // RENDER BẢNG KEY (đầy đủ nút copy, thu hồi)
+  function renderKeysTable(keysData) {
+    if (!keysData) {
+      document.getElementById('keysTableArea').innerHTML = '<div class="empty-state">🔑 Chưa có mã bản quyền, hãy tạo mã.</div>';
+      return;
+    }
+    let html = `<table><thead><tr><th>Mã key</th><th>Trạng thái</th><th>Người dùng (UID)</th><th>Thao tác</th></tr></thead><tbody>`;
+    Object.entries(keysData).forEach(([key, val]) => {
+      const used = val.used === true;
+      const rowClass = used ? 'key-used' : 'key-unused';
+      const usedByUid = val.usedBy || '---';
+      html += `<tr class="${rowClass}">
+        <td><code>${escapeHtml(key)}</code> <button class="copy-key-btn" data-key="${escapeHtml(key)}" style="background:#5cb85c;padding:2px 8px;">📋 Copy</button></td>
+        <td>${used ? '✅ Đã cấp' : '🔄 Chưa dùng'}</td>
+        <td><small>${escapeHtml(usedByUid)}</small></td>
+        <td>${used ? `<button class="revoke-key-from-table" data-key="${escapeHtml(key)}" style="background:#e67e22;padding:4px 12px;">🗑️ Thu hồi</button>` : '—'}</td>
       </tr>`;
     });
     html += `</tbody></table>`;
-    document.getElementById('usersTable').innerHTML = html;
-    document.querySelectorAll('#usersTable .copy-btn').forEach(b => b.onclick = (e) => copyToClipboard(e.currentTarget.getAttribute('data-copy')));
-    document.querySelectorAll('#usersTable .revoke-btn').forEach(b => b.onclick = (e) => revokeLicense(e.currentTarget.getAttribute('data-key'), e.currentTarget));
-  });
-}
+    document.getElementById('keysTableArea').innerHTML = html;
+    
+    document.querySelectorAll('.copy-key-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const key = btn.getAttribute('data-key');
+        navigator.clipboard.writeText(key).then(()=>alert(`📋 Đã sao chép mã: ${key}`));
+        e.stopPropagation();
+      });
+    });
+    document.querySelectorAll('.revoke-key-from-table').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const key = btn.getAttribute('data-key');
+        await revokeLicenseByKey(key, btn);
+      });
+    });
+  }
 
-// Chạy ứng dụng
-initLicenseManager();
-initUserManager();
+  // fetch và realtime users
+  let usersListenerActive = false;
+  function startUsersRealtime() {
+    if (usersListenerActive) return;
+    database.ref('users').on('value', (snap) => {
+      if (snap.exists()) renderUsersTable(snap.val());
+      else renderUsersTable(null);
+    });
+    usersListenerActive = true;
+  }
+  function fetchUsersAndRenderTable() {
+    database.ref('users').once('value', (snap) => {
+      if (snap.exists()) renderUsersTable(snap.val());
+      else renderUsersTable(null);
+    });
+  }
+  function startKeysRealtime() {
+    database.ref('licenseKeys').on('value', (snap) => {
+      if (snap.exists()) renderKeysTable(snap.val());
+      else renderKeysTable(null);
+    });
+  }
+  
+  // KHỞI TẠO SỰ KIỆN
+  document.getElementById('generateKeysBtn').addEventListener('click', async () => {
+    const count = parseInt(document.getElementById('keyCount').value) || 1;
+    let len = parseInt(document.getElementById('keyLength').value) || 8;
+    len = Math.min(20, Math.max(6, len));
+    if (count > 500) { alert("Tối đa 500 key/lần"); return; }
+    await createMultipleKeys(count, len);
+    alert(`Tạo ${count} mã thành công.`);
+  });
+  
+  document.getElementById('batchCreateUsersBtn').addEventListener('click', async () => {
+    const count = parseInt(document.getElementById('userCount').value) || 1;
+    let userLen = parseInt(document.getElementById('usernameLength').value) || 8;
+    let passLen = parseInt(document.getElementById('passwordLength').value) || 8;
+    if (count > 200) { alert("Vui lòng không tạo quá 200 user một lần."); return; }
+    userLen = Math.min(16, Math.max(5, userLen));
+    passLen = Math.min(20, Math.max(6, passLen));
+    const { createdUsers, errors } = await createUserBatch(count, userLen, passLen);
+    if (createdUsers.length) showBatchResult(createdUsers);
+    if (errors.length) console.warn(errors);
+  });
+  
+  document.getElementById('refreshUsersBtn').addEventListener('click', () => {
+    fetchUsersAndRenderTable();
+  });
+  
+  startKeysRealtime();
+  startUsersRealtime();
+  // tải thêm lần đầu
+  fetchUsersAndRenderTable();
+  
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 </script>
 </body>
 </html>
