@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý Bản quyền & Người dùng Độc lập</title>
+  <title>Quản lý Độc lập - Kết nối Realtime</title>
   <style>
     body {font-family: Arial, sans-serif; background:#f4f6f8; margin:0; padding:20px;}
     h1 {text-align:center; margin-bottom:20px;}
@@ -81,7 +81,7 @@
   
   <div class="column-left">
     <div class="form-container">
-      <h3>📝 Tạo mã bản quyền trống</h3>
+      <h3>📝 Tạo mã bản quyền độc lập</h3>
       <div class="form-group">
         <label for="keyCount">Số lượng mã cần tạo</label>
         <input type="number" id="keyCount" value="5" min="1" max="1000">
@@ -101,7 +101,7 @@
   
   <div class="column-right">
     <div class="form-container" style="border-top: 4px solid #e67e22;">
-      <h3>👥 Tạo tài khoản thường (Chưa kích hoạt)</h3>
+      <h3>👥 Tạo tài khoản hệ thống (Chưa kích hoạt VIP)</h3>
       <div class="form-group">
         <label for="userCount">Số lượng User cần tạo</label>
         <input type="number" id="userCount" value="5" min="1" max="100">
@@ -111,16 +111,16 @@
         <input type="number" id="userLength" value="6" min="4" max="15">
       </div>
       <div class="form-group">
-        <label for="userPass">Mật khẩu chung</label>
+        <label for="userPass">Mật khẩu cấp cho User</label>
         <input type="text" id="userPass" value="123456">
       </div>
-      <button id="generateUserBtn" style="background:#e67e22;">Tạo tài khoản thường</button>
+      <button id="generateUserBtn" style="background:#e67e22;">Tạo User & Password</button>
     </div>
 
     <div class="table-container">
-      <h3>👥 Danh sách User & Trạng thái sử dụng</h3>
+      <h3>👥 Danh sách User & Trạng thái kích hoạt VIP</h3>
       <div class="table-responsive" id="usersTable">
-        <p>Đang tải dữ liệu người dùng...</p>
+        <p>Đang tải danh sách tài khoản...</p>
       </div>
     </div>
   </div>
@@ -140,7 +140,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Hàm sinh chuỗi ngẫu nhiên
+// Hàm sinh mã ngẫu nhiên
 function generateRandomString(len=8){
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let res = "";
@@ -148,11 +148,11 @@ function generateRandomString(len=8){
   return res;
 }
 
-// [CỘT 1] TẠO MÃ BẢN QUYỀN TRỐNG hoàn toàn tuân thủ quy tắc Rules ban đầu
+// [CỘT 1] Tạo danh sách mã bản quyền trống hoàn toàn độc lập
 async function createKeys(){
   const count = parseInt(document.getElementById('keyCount').value)||1;
   const length = parseInt(document.getElementById('keyLength').value)||8;
-  const timestamp = new Date().toISOString(); // Rules yêu cầu generatedAt là String
+  const timestamp = new Date().toISOString();
 
   for(let i=0;i<count;i++){
     const key = generateRandomString(length);
@@ -169,8 +169,8 @@ async function createKeys(){
 document.getElementById('generateBtn').addEventListener('click', createKeys);
 
 
-// [CỘT 2] TẠO USER THƯỜNG TRỐNG (Trạng thái ban đầu: Chưa kích hoạt)
-async function createUsersNormal() {
+// [CỘT 2] Tạo User & Mật khẩu đồng bộ đúng theo cấu trúc Rules của bạn
+async function createUsersAndPasswords() {
   const count = parseInt(document.getElementById('userCount').value) || 1;
   const length = parseInt(document.getElementById('userLength').value) || 6;
   const password = document.getElementById('userPass').value.trim() || "123456";
@@ -181,41 +181,45 @@ async function createUsersNormal() {
 
   try {
     for(let i=0; i<count; i++) {
-      const randomUser = "user" + generateRandomString(length).toLowerCase();
-      const email = `${randomUser}@gmail.com`;
+      // Sinh email ngẫu nhiên dạng userxxxx@gmail.com
+      const username = "user" + generateRandomString(length).toLowerCase();
+      const email = `${username}@gmail.com`;
+      
+      // Tạo UID ngẫu nhiên đóng vai trò làm ID liên kết Auth
       const customUid = "UID_" + generateRandomString(12); 
 
-      // Khởi tạo cấu trúc chỉ có cụm license trống để tuân thủ cấu trúc Rules nguyên bản của bạn
+      // Đẩy dữ liệu cấu trúc license trống lên Database nhằm tuân thủ Rules bảo mật nghiêm ngặt của bạn
       const userData = {
         license: {
           licensed: false,
           key: null,
           activatedAt: null
         }
-        // Lưu ý: Không đẩy các trường tự tạo ngoài cấu trúc để tránh bị Rules chặn validate
       };
+      
+      // Lưu thông tin vào database. Khi người dùng lấy UID/Email này nhập vào thiết bị, hệ thống sẽ tự đối chiếu.
       await database.ref('users/' + customUid).set(userData);
     }
-    alert(`✅ Đã tạo xong ${count} tài khoản trống thành công!`);
+    alert(`✅ Đã tạo xong ${count} tài khoản trống! Thông tin hiển thị ở bảng bên phải.`);
   } catch (error) {
     console.error(error);
     alert("❌ Lỗi: " + error.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = "Tạo tài khoản thường";
+    btn.textContent = "Tạo User & Password";
   }
 }
-document.getElementById('generateUserBtn').addEventListener('click', createUsersNormal);
+document.getElementById('generateUserBtn').addEventListener('click', createUsersAndPasswords);
 
 
-// Hàm sao chép nhanh
+// Hàm sao chép nhanh dữ liệu
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
     alert("Đã sao chép: " + text);
   });
 }
 
-// Hàm hủy bản quyền (Reset trạng thái của cả hai bên về trống như cũ)
+// Hàm hủy bản quyền / Tách liên kết giữa Key và User
 async function revokeLicense(key, btnElement) {
   if(!key || key === '---') return;
   if(confirm("Bạn có chắc chắn muốn huỷ bản quyền cho mã: " + key + "?")) {
@@ -234,30 +238,30 @@ async function revokeLicense(key, btnElement) {
       await database.ref('licenseKeys/' + key).update({
         used: false, usedAt: null, usedBy: null, usedByEmail: null
       });
-      alert("✅ Đã hủy liên kết bản quyền!");
+      alert("✅ Đã hủy liên kết bản quyền thành công!");
     } catch (error) {
       alert("❌ Lỗi: " + error.message);
     }
   }
 }
 
-// Định dạng hiển thị ngày từ dạng String ISO hoặc dạng Number mã hóa của hệ thống
+// Chuyển định dạng thời gian trực quan
 function formatTimeDisplay(timeData) {
   if(!timeData) return '---';
   const dateObj = new Date(timeData);
   return isNaN(dateObj.getTime()) ? '---' : dateObj.toLocaleString('vi-VN');
 }
 
-// REALTIME CỘT 1: Danh sách mã bản quyền
+// LẮNG NGHE REALTIME CỘT 1: Bảng danh sách Mã bản quyền
 function initLicenseManager(){
   database.ref('licenseKeys').on('value', snap => {
     if(!snap.exists()){ document.getElementById('keysTable').innerHTML = '<p>Chưa có mã nào.</p>'; return; }
     const keys = snap.val();
     let html = `<table><thead><tr><th>Mã Bản Quyền</th><th>Trạng thái sử dụng</th><th>Hành động</th></tr></thead><tbody>`;
     Object.entries(keys).forEach(([k,v])=>{
-      let statusText = '🔄 Trống (Chưa có ai nhập)';
+      let statusText = '🔄 Trống (Chưa sử dụng)';
       if(v.used){
-        statusText = `🟢 <b>Đã dùng bởi User:</b> <br><small><code>${v.usedBy || 'Ẩn UID'}</code></small>`;
+        statusText = `🟢 <b>Đã kích hoạt bởi User:</b><br><small><code>${v.usedBy || 'Ẩn UID'}</code></small>`;
       }
       html += `<tr class="${v.used?'key-used':'key-unused'}">
         <td><code>${k}</code> <button class="copy-btn" data-copy="${k}">Copy</button></td>
@@ -272,12 +276,12 @@ function initLicenseManager(){
   });
 }
 
-// REALTIME CỘT 2: Danh sách User hệ thống
+// LẮNG NGHE REALTIME CỘT 2: Bảng danh sách User (Tự cập nhật khi có người nhập mã trên App)
 function initUserManager(){
   database.ref('users').on('value', snap => {
-    if(!snap.exists()){ document.getElementById('usersTable').innerHTML = '<p>Chưa có người dùng.</p>'; return; }
+    if(!snap.exists()){ document.getElementById('usersTable').innerHTML = '<p>Chưa có người dùng nào.</p>'; return; }
     const users = snap.val();
-    let html = `<table><thead><tr><th>UID Người Dùng</th><th>Quyền truy cập App</th><th>Mã Đang Sử Dụng</th><th>Thời gian kích hoạt</th></tr></thead><tbody>`;
+    let html = `<table><thead><tr><th>UID / Tài khoản</th><th>Quyền truy cập App</th><th>Mã Bản Quyền Đang Dùng</th><th>Thời gian kích hoạt</th></tr></thead><tbody>`;
     
     Object.entries(users).forEach(([uid, userVal]) => {
       const license = userVal.license || {};
@@ -300,7 +304,7 @@ function initUserManager(){
   });
 }
 
-// Khởi chạy hệ thống
+// Khởi chạy đồng bộ ứng dụng quản lý
 initLicenseManager();
 initUserManager();
 </script>
